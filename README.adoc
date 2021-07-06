@@ -1,0 +1,72 @@
+# Log4j2 RELP Plugin
+
+## Usage
+Pass log4j2.properties file as property
+
+```
+-Dlog4j2.configurationFile=file:/path/to/log4j2.properties
+```
+
+## Example log4j2.properties
+```sh
+name=PropertiesConfig
+
+filters=threshold
+filter.threshold.type=ThresholdFilter
+filter.threshold.level=DEBUG
+
+appenders=RelpAppender
+
+appender.RelpAppender=com.teragrep.jla_06.RelpAppender
+appender.RelpAppender.name=RelpAppender
+appender.RelpAppender.type=RelpAppender
+appender.RelpAppender.layout.type=PatternLayout
+appender.RelpAppender.layout.pattern=[%p] [%F#%L] [%C] %m%n
+appender.RelpAppender.relpAddress=localhost
+appender.RelpAppender.relpPort=1666
+appender.RelpAppender.appName=jla_06
+appender.RelpAppender.hostname=localhost
+appender.RelpAppender.connectionTimeout=5000
+appender.RelpAppender.writeTimeout=2000
+appender.RelpAppender.readTimeout=15000
+appender.RelpAppender.reconnectInterval=3000
+appender.RelpAppender.useSD=true
+
+logger.RelpAppender.name=RelpAppender
+logger.RelpAppender.level=debug
+logger.RelpAppender.appenderRef.RelpAppender.ref=RelpAppender
+
+rootLogger.level=debug
+rootLogger.appenderRef.stdout.ref=RelpAppender
+log4j2.shutdownHookEnabled=false
+```
+
+## JLA_06 specific property explanations
+ * appender.RelpAppender.relpAddress
+ ** Connection destination address
+ * appender.RelpAppender.relpPort
+ ** Connection destination port
+ * appender.RelpAppender.appName
+ ** Stream application identifier. Maximum length of 48 characters, limited by RFC5424
+ * appender.RelpAppender.hostname
+ ** Stream host identifier. Maximum length of 255 characters, limited by RFC5424
+ * appender.RelpAppender.connectionTimeout
+ ** Time to wait before timing out connection
+ * appender.RelpAppender.writeTimeout
+ ** Time to wait for destination to accept data
+ * appender.RelpAppender.readTimeout
+ ** Time to wait for destination to acknowledge sent data (low values cause duplicates)
+ * appender.RelpAppender.reconnectInterval
+ ** Time to wait between re-connection attempts
+ * appender.RelpAppender.useSD
+ ** Enables structured data containing uuid and source information
+
+## Maven dependency definition
+
+```
+<dependency>
+    <groupId>com.teragrep</groupId>
+    <artifactId>jla_06</artifactId>
+    <version>%VERSION%</version>
+</dependency>
+```
