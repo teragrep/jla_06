@@ -155,7 +155,7 @@ public class RelpAppender extends AbstractAppender {
                 .withAppName(this.getAppName())
                 .withHostname(this.getHostname())
                 .withFacility(Facility.USER)
-                .withMsg(event.toString());
+                .withMsg(new String(getLayout().toByteArray(event), StandardCharsets.UTF_8));
 
         // Add SD if enabled
         if (this.getUseSD()) {
