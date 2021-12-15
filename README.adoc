@@ -71,7 +71,7 @@ log4j2.shutdownHookEnabled=false
 </dependency>
 ```
 
-## Adding jars using classpath
+## Configuring pre-built log4j2 application
 
 First download wanted versions of jla_06, rlp_01 and syslog-java-client from the following urls:
 
