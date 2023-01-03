@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 @Plugin(name="RelpAppender", category=Core.CATEGORY_NAME, elementType=Appender.ELEMENT_TYPE, printObject=true)
 public class RelpAppender extends AbstractAppender {
@@ -153,7 +154,8 @@ public class RelpAppender extends AbstractAppender {
         }
         else {
             SSLEngine sslEngine = sslContext.createSSLEngine();
-            this.relpConnection = new RelpConnection(sslEngine);
+            Supplier<SSLEngine> sslEngineSupplier = sslContext::createSSLEngine;
+            this.relpConnection = new RelpConnection(sslEngineSupplier);
         }
         connect();
     }
