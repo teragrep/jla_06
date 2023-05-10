@@ -23,6 +23,7 @@ import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
 import com.teragrep.rlp_01.RelpBatch;
 import com.teragrep.rlp_01.RelpConnection;
+import com.teragrep.rlp_01.SSLContextFactory;
 import org.apache.logging.log4j.core.*;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Property;
@@ -31,13 +32,18 @@ import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginElement;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 @Plugin(name="RelpAppender", category=Core.CATEGORY_NAME, elementType=Appender.ELEMENT_TYPE, printObject=true)
 public class RelpAppender extends AbstractAppender {
@@ -53,7 +59,7 @@ public class RelpAppender extends AbstractAppender {
     int writeTimeout;
     int reconnectInterval;
     boolean connected = false;
-
+    SSLContext sslContext;
 
     public int getReconnectInterval() {
         return reconnectInterval;
@@ -127,7 +133,11 @@ public class RelpAppender extends AbstractAppender {
         return this.useSD;
     }
 
-    protected RelpAppender(String name, Filter filter, Layout<? extends Serializable> layout,  boolean ignoreExceptions, Property[] properties, String hostname, String appName, int readTimeout, int writeTimeout, int reconnectInterval, int connectionTimeout, boolean useSD, String relpAddress, int relpPort) {
+    public void setSslContext(SSLContext sslContext) {
+        this.sslContext = sslContext;
+    }
+
+    protected RelpAppender(String name, Filter filter, Layout<? extends Serializable> layout,  boolean ignoreExceptions, Property[] properties, String hostname, String appName, int readTimeout, int writeTimeout, int reconnectInterval, int connectionTimeout, boolean useSD, String relpAddress, int relpPort, SSLContext sslContext) {
         super(name, filter, layout, ignoreExceptions, properties);
         this.setHostname(hostname);
         this.setAppName(appName);
@@ -138,7 +148,15 @@ public class RelpAppender extends AbstractAppender {
         this.setUseSD(useSD);
         this.setRelpAddress(relpAddress);
         this.setRelpPort(relpPort);
-        this.relpConnection = new RelpConnection();
+        this.setSslContext(sslContext);
+        if (sslContext == null) {
+            this.relpConnection = new RelpConnection();
+        }
+        else {
+            SSLEngine sslEngine = sslContext.createSSLEngine();
+            Supplier<SSLEngine> sslEngineSupplier = sslContext::createSSLEngine;
+            this.relpConnection = new RelpConnection(sslEngineSupplier);
+        }
         connect();
     }
 
@@ -211,9 +229,23 @@ public class RelpAppender extends AbstractAppender {
             @PluginAttribute("useSD") boolean useSD,
             @PluginAttribute("relpAddress") String relpAddress,
             @PluginAttribute("relpPort") int relpPort,
+            @PluginAttribute("useTLS") boolean useTLS,
+            @PluginAttribute("keystorePath") String keystorePath,
+            @PluginAttribute("keystorePassword") String keystorePassword,
+            @PluginAttribute("tlsProtocol") String tlsProtocol,
             @PluginElement("Layout") Layout layout,
             @PluginElement("Filters") Filter filter) {
-        return new RelpAppender(name, filter, layout, ignoreExceptions, null, hostname, appName, readTimeout, writeTimeout, reconnectInterval, connectionTimeout, useSD, relpAddress, relpPort);
+
+        SSLContext sslContext = null;
+        if (useTLS) {
+            try {
+                sslContext = SSLContextFactory.authenticatedContext(keystorePath, keystorePassword, tlsProtocol);
+            } catch (IOException | GeneralSecurityException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return new RelpAppender(name, filter, layout, ignoreExceptions, null, hostname, appName, readTimeout, writeTimeout, reconnectInterval, connectionTimeout, useSD, relpAddress, relpPort, sslContext);
     }
 
     private void reconnect() throws IOException, TimeoutException {
