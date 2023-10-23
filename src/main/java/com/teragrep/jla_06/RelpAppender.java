@@ -17,10 +17,10 @@
 
 package com.teragrep.jla_06;
 
-import com.cloudbees.syslog.Facility;
-import com.cloudbees.syslog.SDElement;
-import com.cloudbees.syslog.Severity;
-import com.cloudbees.syslog.SyslogMessage;
+import com.teragrep.rlo_14.Facility;
+import com.teragrep.rlo_14.SDElement;
+import com.teragrep.rlo_14.Severity;
+import com.teragrep.rlo_14.SyslogMessage;
 import com.teragrep.rlp_01.RelpBatch;
 import com.teragrep.rlp_01.RelpConnection;
 import com.teragrep.rlp_01.SSLContextFactory;
