@@ -1,13 +1,14 @@
-# Log4j2 RELP Plugin
+= Log4j2 RELP Plugin
 
-## Usage
+== Usage
 Pass log4j2.properties file as property
 
 ```
 -Dlog4j2.configurationFile=file:/path/to/log4j2.properties
 ```
 
-## Example log4j2.properties
+== Example log4j2.properties
+
 ```sh
 name=PropertiesConfig
 
@@ -41,27 +42,40 @@ rootLogger.appenderRef.stdout.ref=RelpAppender
 log4j2.shutdownHookEnabled=false
 ```
 
-## JLA_06 specific property explanations
- * appender.RelpAppender.relpAddress
- ** Connection destination address
- * appender.RelpAppender.relpPort
- ** Connection destination port
- * appender.RelpAppender.appName
- ** Stream application identifier. Maximum length of 48 characters, limited by RFC5424
- * appender.RelpAppender.hostname
- ** Stream host identifier. Maximum length of 255 characters, limited by RFC5424
- * appender.RelpAppender.connectionTimeout
- ** Time to wait before timing out connection
- * appender.RelpAppender.writeTimeout
- ** Time to wait for destination to accept data
- * appender.RelpAppender.readTimeout
- ** Time to wait for destination to acknowledge sent data (low values cause duplicates)
- * appender.RelpAppender.reconnectInterval
- ** Time to wait between re-connection attempts
- * appender.RelpAppender.useSD
- ** Enables structured data containing uuid and source information
+== JLA_06 specific property explanations
 
-## Maven dependency definition
+|===
+|Property |Description
+
+|appender.RelpAppender.relpAddress
+|Connection destination address
+
+|appender.RelpAppender.relpPort
+|Connection destination port
+ 
+|appender.RelpAppender.appName
+|Stream application identifier. Maximum length of 48 characters, limited by RFC5424
+ 
+|appender.RelpAppender.hostname
+|Stream host identifier. Maximum length of 255 characters, limited by RFC5424
+ 
+|appender.RelpAppender.connectionTimeout
+|Time to wait before timing out connection
+ 
+|appender.RelpAppender.writeTimeout
+|Time to wait for destination to accept data
+ 
+|appender.RelpAppender.readTimeout
+|Time to wait for destination to acknowledge sent data (low values cause duplicates)
+
+|appender.RelpAppender.reconnectInterval
+|Time to wait between re-connection attempts
+ 
+|appender.RelpAppender.useSD
+|Enables structured data containing uuid and source information
+|===
+
+== Maven dependency definition
 
 ```
 <dependency>
@@ -71,18 +85,37 @@ log4j2.shutdownHookEnabled=false
 </dependency>
 ```
 
-## Configuring pre-built log4j2 application
+== Configuring pre-built log4j2 application
 
 First download wanted versions of jla_06, rlp_01 and syslog-java-client from the following urls:
 
-https://search.maven.org/artifact/com.teragrep/jla_06[jla_06]
-
-https://search.maven.org/artifact/com.teragrep/rlp_01[rlp_01]
-
-https://search.maven.org/artifact/com.cloudbees/syslog-java-client[syslog-java-client]
+* https://search.maven.org/artifact/com.teragrep/jla_06[jla_06]
+* https://search.maven.org/artifact/com.teragrep/rlp_01[rlp_01]
+* https://search.maven.org/artifact/com.cloudbees/syslog-java-client[syslog-java-client]
 
 Then run java while pointing classpath to the directory where you downloaded the jars to like:
 
 ```
 java -cp "path/to/downloaded/jars/*:target/example.jar" com.teragrep.example.Main
 ```
+
+== Contributing
+ 
+// Change the repository name in the issues link to match with your project's name
+ 
+You can involve yourself with our project by https://github.com/teragrep/jla_06/issues/new/choose[opening an issue] or submitting a pull request.
+ 
+Contribution requirements:
+ 
+. *All changes must be accompanied by a new or changed test.* If you think testing is not required in your pull request, include a sufficient explanation as why you think so.
+. Security checks must pass
+. Pull requests must align with the principles and http://www.extremeprogramming.org/values.html[values] of extreme programming.
+. Pull requests must follow the principles of Object Thinking and Elegant Objects (EO).
+ 
+Read more in our https://github.com/teragrep/teragrep/blob/main/contributing.adoc[Contributing Guideline].
+ 
+=== Contributor License Agreement
+ 
+Contributors must sign https://github.com/teragrep/teragrep/blob/main/cla.adoc[Teragrep Contributor License Agreement] before a pull request is accepted to organization's repositories.
+ 
+You need to submit the CLA only once. After submitting the CLA you can contribute to all Teragrep's repositories. 
