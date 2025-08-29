@@ -1,23 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <packaging>jar</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.teragrep</groupId>
   <artifactId>jla_06</artifactId>
   <version>${revision}${sha1}${changelist}</version>
+  <packaging>jar</packaging>
   <name>jla_06</name>
   <description>Log4j2 RELP Plugin</description>
   <url>https://teragrep.com</url>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <java.version>1.8</java.version>
-    <revision>0.0.1</revision>
-    <changelist>-SNAPSHOT</changelist>
-    <sha1/>
-  </properties>  
   <licenses>
     <license>
       <name>Apache License 2.0</name>
@@ -37,6 +27,14 @@
     <developerConnection>scm:git:git@github.com:teragrep/jla_06.git</developerConnection>
     <url>https://github.com/teragrep/jla_06/tree/master</url>
   </scm>
+  <properties>
+    <changelist>-SNAPSHOT</changelist>
+    <java.version>1.8</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <revision>0.0.1</revision>
+    <sha1></sha1>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>com.teragrep</groupId>
@@ -309,18 +307,18 @@
         </configuration>
         <executions>
           <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-          </execution>
-          <execution>
             <id>flatten.clean</id>
-            <phase>clean</phase>
             <goals>
               <goal>clean</goal>
             </goals>
+            <phase>clean</phase>
+          </execution>
+          <execution>
+            <id>flatten</id>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+            <phase>process-resources</phase>
           </execution>
         </executions>
       </plugin>
