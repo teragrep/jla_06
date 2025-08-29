@@ -14,7 +14,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-
 package com.teragrep.jla_06;
 
 import com.teragrep.rlo_14.Facility;
@@ -36,7 +35,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Date;
@@ -45,8 +43,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
-@Plugin(name="RelpAppender", category=Core.CATEGORY_NAME, elementType=Appender.ELEMENT_TYPE, printObject=true)
+@Plugin(
+        name = "RelpAppender",
+        category = Core.CATEGORY_NAME,
+        elementType = Appender.ELEMENT_TYPE,
+        printObject = true
+)
 public class RelpAppender extends AbstractAppender {
+
     private RelpConnection relpConnection;
     private RelpBatch batch;
     String appName;
@@ -125,11 +129,11 @@ public class RelpAppender extends AbstractAppender {
         this.appName = app;
     }
 
-    public void setUseSD(Boolean useSD){
+    public void setUseSD(Boolean useSD) {
         this.useSD = useSD;
     }
 
-    public boolean getUseSD(){
+    public boolean getUseSD() {
         return this.useSD;
     }
 
@@ -137,7 +141,23 @@ public class RelpAppender extends AbstractAppender {
         this.sslContext = sslContext;
     }
 
-    protected RelpAppender(String name, Filter filter, Layout<? extends Serializable> layout,  boolean ignoreExceptions, Property[] properties, String hostname, String appName, int readTimeout, int writeTimeout, int reconnectInterval, int connectionTimeout, boolean useSD, String relpAddress, int relpPort, SSLContext sslContext) {
+    protected RelpAppender(
+            String name,
+            Filter filter,
+            Layout<? extends Serializable> layout,
+            boolean ignoreExceptions,
+            Property[] properties,
+            String hostname,
+            String appName,
+            int readTimeout,
+            int writeTimeout,
+            int reconnectInterval,
+            int connectionTimeout,
+            boolean useSD,
+            String relpAddress,
+            int relpPort,
+            SSLContext sslContext
+    ) {
         super(name, filter, layout, ignoreExceptions, properties);
         this.setHostname(hostname);
         this.setAppName(appName);
@@ -182,11 +202,8 @@ public class RelpAppender extends AbstractAppender {
                     .addSDParam("uuid", UUID.randomUUID().toString())
                     .addSDParam("source", "source")
                     .addSDParam("unixtime", Long.toString(System.currentTimeMillis()));
-            SDElement origin_48577 = new SDElement("origin@48577")
-                    .addSDParam("hostname", this.getHostname());
-            syslog = syslog
-                    .withSDElement(event_id_48577)
-                    .withSDElement(origin_48577);
+            SDElement origin_48577 = new SDElement("origin@48577").addSDParam("hostname", this.getHostname());
+            syslog = syslog.withSDElement(event_id_48577).withSDElement(origin_48577);
         }
 
         RelpBatch batch = new RelpBatch();
@@ -196,7 +213,8 @@ public class RelpAppender extends AbstractAppender {
         while (!allSent) {
             try {
                 this.relpConnection.commit(batch);
-            } catch (IllegalStateException | IOException | java.util.concurrent.TimeoutException e) {
+            }
+            catch (IllegalStateException | IOException | java.util.concurrent.TimeoutException e) {
                 System.out.println("RelpAppender.flush.commit> exception:");
                 e.printStackTrace();
                 this.relpConnection.tearDown();
@@ -207,10 +225,12 @@ public class RelpAppender extends AbstractAppender {
                 batch.retryAllFailed();
                 try {
                     reconnect();
-                } catch (IOException | TimeoutException e) {
+                }
+                catch (IOException | TimeoutException e) {
                     e.printStackTrace();
                 }
-            } else {
+            }
+            else {
                 allSent = true;
             }
         }
@@ -234,18 +254,36 @@ public class RelpAppender extends AbstractAppender {
             @PluginAttribute("keystorePassword") String keystorePassword,
             @PluginAttribute("tlsProtocol") String tlsProtocol,
             @PluginElement("Layout") Layout layout,
-            @PluginElement("Filters") Filter filter) {
+            @PluginElement("Filters") Filter filter
+    ) {
 
         SSLContext sslContext = null;
         if (useTLS) {
             try {
                 sslContext = SSLContextFactory.authenticatedContext(keystorePath, keystorePassword, tlsProtocol);
-            } catch (IOException | GeneralSecurityException e) {
+            }
+            catch (IOException | GeneralSecurityException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        return new RelpAppender(name, filter, layout, ignoreExceptions, null, hostname, appName, readTimeout, writeTimeout, reconnectInterval, connectionTimeout, useSD, relpAddress, relpPort, sslContext);
+        return new RelpAppender(
+                name,
+                filter,
+                layout,
+                ignoreExceptions,
+                null,
+                hostname,
+                appName,
+                readTimeout,
+                writeTimeout,
+                reconnectInterval,
+                connectionTimeout,
+                useSD,
+                relpAddress,
+                relpPort,
+                sslContext
+        );
     }
 
     private void reconnect() throws IOException, TimeoutException {
@@ -259,7 +297,8 @@ public class RelpAppender extends AbstractAppender {
         }
         try {
             this.relpConnection.disconnect();
-        } catch (IllegalStateException | IOException | java.util.concurrent.TimeoutException e) {
+        }
+        catch (IllegalStateException | IOException | java.util.concurrent.TimeoutException e) {
             System.out.println("RelpAppender.disconnect> exception:");
             e.printStackTrace();
         }
@@ -271,14 +310,16 @@ public class RelpAppender extends AbstractAppender {
         while (!this.connected) {
             try {
                 this.connected = this.relpConnection.connect(this.getRelpAddress(), this.getRelpPort());
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 System.out.println("RelpAppender.connect> exception:");
                 e.printStackTrace();
             }
-            if(!this.connected) {
+            if (!this.connected) {
                 try {
                     Thread.sleep(this.getReconnectInterval());
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -290,7 +331,8 @@ public class RelpAppender extends AbstractAppender {
         try {
             disconnect();
             return true;
-        } catch (IOException | TimeoutException e) {
+        }
+        catch (IOException | TimeoutException e) {
             e.printStackTrace();
         }
         return false;

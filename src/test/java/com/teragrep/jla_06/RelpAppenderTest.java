@@ -14,7 +14,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-
 package com.teragrep.jla_06;
 
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +21,9 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.*;
 
 public class RelpAppenderTest {
+
     private static final Logger logger = LogManager.getLogger(RelpAppenderTest.class.getName());
+
     //@Test
     @DisplayName("Tests normal usage")
     public void testUsage() {
