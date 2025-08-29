@@ -204,9 +204,9 @@
               <all>
                 <copyright>
                   <owner>Suomen Kanuuna Oy</owner>
-                  <start>2024</start>
+                  <start>2021</start>
                 </copyright>
-                <text>https://github.com/teragrep/teragrep/blob/main/LICENSE</text>
+                <text>Log4j2 RELP Plugin</text>
               </all>
               <family>Teragrep</family>
             </license>
@@ -230,6 +230,8 @@
             <exclude>eclipse-java-formatter.xml</exclude>
             <!-- readme -->
             <exclude>README.adoc</exclude>
+            <!-- test property file -->
+            <exclude>src/test/java/com/teragrep/jla_06/log4j2.properties</exclude>
           </excludes>
         </configuration>
         <executions>
