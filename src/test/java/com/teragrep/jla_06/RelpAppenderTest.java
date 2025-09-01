@@ -16,23 +16,45 @@
  */
 package com.teragrep.jla_06;
 
+import com.teragrep.jla_06.server.TestServer;
+import com.teragrep.jla_06.server.TestServerFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.junit.jupiter.api.*;
+
+import java.io.File;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class RelpAppenderTest {
 
-    private static final Logger logger = LogManager.getLogger(RelpAppenderTest.class.getName());
+    @Test
+    void testNormalUsage() {
+        TestServerFactory serverFactory = new TestServerFactory();
 
-    //@Test
-    @DisplayName("Tests normal usage")
-    public void testUsage() {
-        Assertions.assertAll(() -> {
-            logger.debug("Debug message");
-            logger.info("Info message");
-            logger.warn("Warning message");
-            logger.error("Error message");
-            LogManager.shutdown(true);
+        final int serverPort = 1601;
+
+        final String testPayload = "some payload";
+
+        final ConcurrentLinkedDeque<byte[]> messageList = new ConcurrentLinkedDeque<>();
+        AtomicLong openCount = new AtomicLong();
+        AtomicLong closeCount = new AtomicLong();
+
+        Assertions.assertDoesNotThrow(() -> {
+            try (TestServer server = serverFactory.create(serverPort, messageList, openCount, closeCount)) {
+                server.run();
+                LoggerContext context = (LoggerContext) LogManager.getContext(false);
+                File file = new File("src/test/resources/log4j2-non-standard-location.xml");
+                context.setConfigLocation(file.toURI());
+                final Logger logger = LogManager.getLogger(this.getClass());
+                logger.info(testPayload);
+            }
+
         });
+
+        Assertions.assertEquals(1, messageList.size(), "messageList size not expected");
+
     }
+
 }

@@ -39,7 +39,7 @@
     <dependency>
       <groupId>com.teragrep</groupId>
       <artifactId>rlp_01</artifactId>
-      <version>5.0.0</version>
+      <version>4.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -84,6 +84,18 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>5.13.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.teragrep</groupId>
+      <artifactId>rlo_06</artifactId>
+      <version>9.0.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.teragrep</groupId>
+      <artifactId>rlp_03</artifactId>
+      <version>9.0.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -231,7 +243,7 @@
             <!-- readme -->
             <exclude>README.adoc</exclude>
             <!-- test property file -->
-            <exclude>src/test/java/com/teragrep/jla_06/log4j2.properties</exclude>
+            <exclude>src/test/resources/log4j2.properties</exclude>
           </excludes>
         </configuration>
         <executions>
