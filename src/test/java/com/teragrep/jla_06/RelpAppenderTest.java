@@ -18,19 +18,21 @@ package com.teragrep.jla_06;
 
 import com.teragrep.jla_06.server.TestServer;
 import com.teragrep.jla_06.server.TestServerFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.impl.Log4jLogEvent;
+import org.apache.logging.log4j.core.layout.MessageLayout;
+import org.apache.logging.log4j.message.SimpleMessage;
 import org.junit.jupiter.api.*;
 
-import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class RelpAppenderTest {
 
     @Test
-    void testNormalUsage() {
+    void testNormalUsage() throws Exception {
         TestServerFactory serverFactory = new TestServerFactory();
 
         final int serverPort = 1601;
@@ -41,20 +43,29 @@ public class RelpAppenderTest {
         AtomicLong openCount = new AtomicLong();
         AtomicLong closeCount = new AtomicLong();
 
-        Assertions.assertDoesNotThrow(() -> {
-            try (TestServer server = serverFactory.create(serverPort, messageList, openCount, closeCount)) {
-                server.run();
-                LoggerContext context = (LoggerContext) LogManager.getContext(false);
-                File file = new File("src/test/resources/log4j2-non-standard-location.xml");
-                context.setConfigLocation(file.toURI());
-                final Logger logger = LogManager.getLogger(this.getClass());
-                logger.info(testPayload);
-            }
-
-        });
-
+        try (TestServer server = serverFactory.create(serverPort, messageList, openCount, closeCount)) {
+            server.run();
+            RelpAppender relpAppender = createRelpAppender();
+            relpAppender.start();
+            Log4jLogEvent.newBuilder().setMessage(null).build();
+            relpAppender.append(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage("XXX")).build());
+        }
         Assertions.assertEquals(1, messageList.size(), "messageList size not expected");
-
     }
 
+    private RelpAppender createRelpAppender() {
+        Layout layout = MessageLayout.createLayout();
+        layout.toByteArray(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage("XXX")).build());
+        System.out.println("layout: " + layout);
+        System.out
+                .println(
+                        "layout.toByteArray: "
+                                + new String(layout.toByteArray(Log4jLogEvent.newBuilder().setTimeMillis(0).setLevel(Level.INFO).setMessage(new SimpleMessage("XXX")).build()), StandardCharsets.UTF_8)
+                );
+        return RelpAppender
+                .createAppender(
+                        "relpAppender", false, "jla_06", "jla_06", 5000, 5000, 5000, 5000, true, "127.0.0.1", 1601,
+                        false, null, null, null, layout, null
+                );
+    }
 }

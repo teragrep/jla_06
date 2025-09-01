@@ -301,6 +301,7 @@
           <parallel>all</parallel>
           <useUnlimitedThreads>true</useUnlimitedThreads>
           <parallelTestTimeoutForcedInSeconds>10</parallelTestTimeoutForcedInSeconds>
+          <trimStackTrace>false</trimStackTrace>
         </configuration>
       </plugin>
       <plugin>

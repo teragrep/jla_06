@@ -185,6 +185,10 @@ public class RelpAppender extends AbstractAppender {
         if (!this.connected) {
             connect();
         }
+        if (event == null) {
+            System.out.println("x");
+            throw new RuntimeException("xyz");
+        }
 
         // Craft syslog message
         SyslogMessage syslog = new SyslogMessage()

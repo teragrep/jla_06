@@ -57,8 +57,10 @@ public class TestServerFactory {
 
             relpCommandConsumerMap.put("open", new RelpEventOpenCounting(connectionOpenCount));
 
-            relpCommandConsumerMap
-                    .put("syslog", new RelpEventSyslog((frame) -> messageList.add(frame.relpFrame().payload().toBytes())));
+            relpCommandConsumerMap.put("syslog", new RelpEventSyslog((frame) -> {
+                System.out.println("got syslog");
+                messageList.add(frame.relpFrame().payload().toBytes());
+            }));
 
             return new EventDelegate(relpCommandConsumerMap);
         };
