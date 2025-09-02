@@ -18,7 +18,6 @@ package com.teragrep.jla_06;
 
 import com.teragrep.jla_06.lib.RelpLogAppender;
 import com.teragrep.jla_06.lib.RelpLogAppenderImpl;
-import com.teragrep.jla_06.lib.RelpLogAppenderStub;
 import com.teragrep.jla_06.lib.RelpLogAppenderSynchronized;
 import com.teragrep.jla_06.lib.syslog.SyslogRecord;
 import com.teragrep.jla_06.lib.syslog.SyslogRecordConfigured;
@@ -50,7 +49,6 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Plugin(
         name = "RelpAppender",
@@ -60,7 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
 )
 public class RelpAppender extends AbstractAppender {
 
-    private final AtomicReference<RelpLogAppender> relpAppenderRef;
+    private final RelpLogAppender relpLogAppender;
     private final SyslogRecordFactory syslogRecordFactory;
 
     protected RelpAppender(
@@ -128,13 +126,12 @@ public class RelpAppender extends AbstractAppender {
                 relpConnectionFactory,
                 new ManagedRelpConnectionStub()
         );
-
-        relpAppenderRef = new AtomicReference<>(new RelpLogAppenderStub());
-        RelpLogAppender relpLogAppender = new RelpLogAppenderImpl(relpConnectionPool);
-        if (synchronizedAccess) {
-            relpLogAppender = new RelpLogAppenderSynchronized(relpLogAppender);
+        if (!synchronizedAccess) {
+            this.relpLogAppender = new RelpLogAppenderImpl(relpConnectionPool);
         }
-        relpAppenderRef.set(relpLogAppender);
+        else {
+            this.relpLogAppender = new RelpLogAppenderSynchronized(new RelpLogAppenderImpl(relpConnectionPool));
+        }
     }
 
     private static class SyslogRecordFactory {
@@ -183,7 +180,7 @@ public class RelpAppender extends AbstractAppender {
     public void append(LogEvent event) {
         SyslogRecord syslogRecord = syslogRecordFactory
                 .create(new String(getLayout().toByteArray(event), StandardCharsets.UTF_8));
-        relpAppenderRef.get().append(syslogRecord);
+        relpLogAppender.append(syslogRecord);
     }
 
     @PluginFactory
@@ -307,6 +304,6 @@ public class RelpAppender extends AbstractAppender {
     @Override
     public void stop() {
         super.stop();
-        relpAppenderRef.get().stop();
+        relpLogAppender.stop();
     }
 }
