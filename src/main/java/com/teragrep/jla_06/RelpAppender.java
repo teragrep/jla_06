@@ -28,7 +28,6 @@ import com.teragrep.jla_07.syslog.SyslogRecordPayload;
 import com.teragrep.jla_07.syslog.SyslogRecordSystemID;
 import com.teragrep.jla_07.syslog.SyslogRecordTimestamp;
 import com.teragrep.jla_07.syslog.hostname.Hostname;
-import com.teragrep.rlo_14.SDElement;
 import com.teragrep.rlp_01.client.IManagedRelpConnection;
 import com.teragrep.rlp_01.client.ManagedRelpConnectionStub;
 import com.teragrep.rlp_01.client.RelpConfig;
@@ -175,7 +174,6 @@ public class RelpAppender extends AbstractAppender {
             if (enableSystemID) {
                 syslogRecord = new SyslogRecordSystemID(syslogRecord, systemID);
             }
-            syslogRecord.getRecord().withSDElement(new SDElement("x"));
 
             return new SyslogRecordPayload(syslogRecord, payload);
         }
@@ -232,7 +230,7 @@ public class RelpAppender extends AbstractAppender {
             ) String relpAddress,
             @PluginAttribute(
                     value = "relpPort",
-                    defaultInt = 601
+                    defaultInt = 1601
             ) int relpPort,
             @PluginAttribute(
                     value = "useTLS",
