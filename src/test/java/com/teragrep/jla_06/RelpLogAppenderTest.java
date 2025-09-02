@@ -58,7 +58,6 @@ public class RelpLogAppenderTest {
                 server.run();
                 RelpAppender relpAppender = createRelpAppender(hostname, appName);
                 relpAppender.start();
-                Log4jLogEvent.newBuilder().setMessage(null).build();
                 relpAppender
                         .append(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage(testPayload)).setThreadName("ThreadXyz").setLoggerName("LoggerXyz").setLevel(Level.INFO).setTimeMillis(1).build());
                 relpAppender.stop();
