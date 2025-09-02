@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 public class RelpLogAppenderTest {
 
     @Test
-    void testNormalUsage() throws Exception {
+    void testNormalUsage() {
         TestServerFactory serverFactory = new TestServerFactory();
 
         final int serverPort = 1601;
@@ -53,15 +53,17 @@ public class RelpLogAppenderTest {
         AtomicLong openCount = new AtomicLong();
         AtomicLong closeCount = new AtomicLong();
 
-        try (TestServer server = serverFactory.create(serverPort, messageList, openCount, closeCount)) {
-            server.run();
-            RelpAppender relpAppender = createRelpAppender(hostname, appName);
-            relpAppender.start();
-            Log4jLogEvent.newBuilder().setMessage(null).build();
-            relpAppender
-                    .append(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage(testPayload)).setThreadName("ThreadXyz").setLoggerName("LoggerXyz").setLevel(Level.INFO).setTimeMillis(1).build());
-            relpAppender.stop();
-        }
+        Assertions.assertDoesNotThrow(() -> {
+            try (TestServer server = serverFactory.create(serverPort, messageList, openCount, closeCount)) {
+                server.run();
+                RelpAppender relpAppender = createRelpAppender(hostname, appName);
+                relpAppender.start();
+                Log4jLogEvent.newBuilder().setMessage(null).build();
+                relpAppender
+                        .append(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage(testPayload)).setThreadName("ThreadXyz").setLoggerName("LoggerXyz").setLevel(Level.INFO).setTimeMillis(1).build());
+                relpAppender.stop();
+            }
+        });
         Assertions.assertEquals(1, messageList.size(), "messageList size not expected");
 
         for (byte[] message : messageList) {
