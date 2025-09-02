@@ -105,10 +105,7 @@ public class RelpLogAppenderTest {
                 server.run();
                 RelpAppender relpAppender = createRelpAppender(hostname, appName);
                 relpAppender.start();
-                Log4jLogEvent.newBuilder().setMessage(null).build();
-
                 CountDownLatch countDownLatch = new CountDownLatch(testCycles);
-
                 for (int i = 0; i < testCycles; i++) {
                     final String testString = testPayload + " " + i;
                     ForkJoinPool.commonPool().submit(() -> {
@@ -177,7 +174,7 @@ public class RelpLogAppenderTest {
         return RelpAppender
                 .createAppender(
                         "relpAppender", false, hostname, appName, 5000, 5000, 5000, 5000, true, "127.0.0.1", 1601,
-                        false, null, null, null, false, "", 0, false, 0, false, layout, null
+                        false, null, null, null, false, "", 1000, false, 1000, false, layout, null
                 );
     }
 }

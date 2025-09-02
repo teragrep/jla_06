@@ -270,7 +270,10 @@ public class RelpAppender extends AbstractAppender {
                     value = "reconnectIfNoMessagesInterval",
                     defaultInt = 150_000
             ) int reconnectIfNoMessagesInterval,
-            @PluginAttribute(value = "synchronizedAccess") boolean synchronizedAccess,
+            @PluginAttribute(
+                    value = "synchronizedAccess",
+                    defaultBoolean = false
+            ) boolean synchronizedAccess,
             @PluginElement("Layout") Layout layout,
             @PluginElement("Filters") Filter filter
     ) {
