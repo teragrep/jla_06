@@ -14,16 +14,24 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_06;
+package com.teragrep.jla_07.syslog;
 
-import com.teragrep.rlp_01.pool.Stubable;
-import org.apache.logging.log4j.core.LogEvent;
+import com.teragrep.rlo_14.SyslogMessage;
 
-import java.util.concurrent.TimeUnit;
+public final class SyslogRecordPayload implements SyslogRecord {
 
-public interface IRelpAppender extends Stubable {
+    private final SyslogRecord syslogRecord;
+    private final String payload;
 
-    void append(LogEvent event);
+    public SyslogRecordPayload(SyslogRecord syslogRecord, String payload) {
+        this.syslogRecord = syslogRecord;
+        this.payload = payload;
+    }
 
-    boolean stop(long timeout, TimeUnit timeUnit);
+    @Override
+    public SyslogMessage getRecord() {
+        SyslogMessage syslogMessage = syslogRecord.getRecord();
+        syslogMessage.withMsg(payload);
+        return syslogMessage;
+    }
 }

@@ -16,13 +16,30 @@
  */
 package com.teragrep.jla_06;
 
-import com.teragrep.rlo_14.Facility;
+import com.teragrep.jla_07.RelpLogAppender;
+import com.teragrep.jla_07.RelpLogAppenderImpl;
+import com.teragrep.jla_07.RelpLogAppenderStub;
+import com.teragrep.jla_07.RelpLogAppenderSynchronized;
+import com.teragrep.jla_07.syslog.SyslogRecord;
+import com.teragrep.jla_07.syslog.SyslogRecordConfigured;
+import com.teragrep.jla_07.syslog.SyslogRecordEventID;
+import com.teragrep.jla_07.syslog.SyslogRecordOrigin;
+import com.teragrep.jla_07.syslog.SyslogRecordPayload;
+import com.teragrep.jla_07.syslog.SyslogRecordSystemID;
+import com.teragrep.jla_07.syslog.SyslogRecordTimestamp;
+import com.teragrep.jla_07.syslog.hostname.Hostname;
 import com.teragrep.rlo_14.SDElement;
-import com.teragrep.rlo_14.Severity;
-import com.teragrep.rlo_14.SyslogMessage;
-import com.teragrep.rlp_01.RelpBatch;
-import com.teragrep.rlp_01.RelpConnection;
-import com.teragrep.rlp_01.SSLContextFactory;
+import com.teragrep.rlp_01.client.IManagedRelpConnection;
+import com.teragrep.rlp_01.client.ManagedRelpConnectionStub;
+import com.teragrep.rlp_01.client.RelpConfig;
+import com.teragrep.rlp_01.client.RelpConnectionFactory;
+import com.teragrep.rlp_01.client.SSLContextSupplier;
+import com.teragrep.rlp_01.client.SSLContextSupplierKeystore;
+import com.teragrep.rlp_01.client.SSLContextSupplierStub;
+import com.teragrep.rlp_01.client.SocketConfig;
+import com.teragrep.rlp_01.client.SocketConfigImpl;
+import com.teragrep.rlp_01.pool.Pool;
+import com.teragrep.rlp_01.pool.UnboundPool;
 import org.apache.logging.log4j.core.*;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Property;
@@ -31,17 +48,10 @@ import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginElement;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.util.Date;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Supplier;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Plugin(
         name = "RelpAppender",
@@ -51,19 +61,8 @@ import java.util.function.Supplier;
 )
 public class RelpAppender extends AbstractAppender {
 
-    private RelpConnection relpConnection;
-    private RelpBatch batch;
-    private final String appName;
-    private final int connectionTimeout;
-    private final String hostname;
-    private final int readTimeout;
-    private final String relpAddress;
-    private final boolean useSD;
-    private final int relpPort;
-    private final int writeTimeout;
-    private final int reconnectInterval;
-    boolean connected = false;
-    SSLContext sslContext;
+    private final AtomicReference<RelpLogAppender> relpAppenderRef;
+    private final SyslogRecordFactory syslogRecordFactory;
 
     protected RelpAppender(
             String name,
@@ -78,117 +77,203 @@ public class RelpAppender extends AbstractAppender {
             int reconnectInterval,
             int connectionTimeout,
             boolean useSD,
-            String relpAddress,
+            String relpHostAddress,
             int relpPort,
-            SSLContext sslContext
+            boolean useTLS,
+            String keystorePath,
+            String keystorePassword,
+            String tlsProtocol,
+            boolean enableSystemId,
+            String systemID,
+            int rebindRequestAmount,
+            boolean rebindEnabled,
+            int reconnectIfNoMessagesInterval,
+            boolean synchronizedAccess
     ) {
         super(name, filter, layout, ignoreExceptions, properties);
-        this.hostname = hostname;
-        this.appName = appName;
-        this.readTimeout = readTimeout;
-        this.writeTimeout = writeTimeout;
-        this.reconnectInterval = reconnectInterval;
-        this.connectionTimeout = connectionTimeout;
-        this.useSD = useSD;
-        this.relpAddress = relpAddress;
-        this.relpPort = relpPort;
-        this.sslContext = sslContext;
-        if (sslContext == null) {
-            this.relpConnection = new RelpConnection();
+        final SSLContextSupplier sslContextSupplier;
+        if (useTLS) {
+            sslContextSupplier = new SSLContextSupplierKeystore(keystorePath, keystorePassword, tlsProtocol);
         }
         else {
-            Supplier<SSLEngine> sslEngineSupplier = sslContext::createSSLEngine;
-            this.relpConnection = new RelpConnection(sslEngineSupplier);
+            sslContextSupplier = new SSLContextSupplierStub();
         }
-        connect();
+        String originalHostname = new Hostname("").hostname();
+        this.syslogRecordFactory = new SyslogRecordFactory(
+                hostname,
+                appName,
+                originalHostname,
+                useSD,
+                enableSystemId,
+                systemID
+        );
+        boolean maxIdleEnabled = (reconnectIfNoMessagesInterval > 0);
+
+        final RelpConfig relpConfig = new RelpConfig(
+                relpHostAddress,
+                relpPort,
+                reconnectInterval,
+                rebindRequestAmount,
+                rebindEnabled,
+                Duration.ofMillis(reconnectIfNoMessagesInterval),
+                maxIdleEnabled
+        );
+        final SocketConfig socketConfig = new SocketConfigImpl(readTimeout, writeTimeout, connectionTimeout, false);
+        RelpConnectionFactory relpConnectionFactory = new RelpConnectionFactory(
+                relpConfig,
+                socketConfig,
+                sslContextSupplier
+        );
+
+        Pool<IManagedRelpConnection> relpConnectionPool = new UnboundPool<>(
+                relpConnectionFactory,
+                new ManagedRelpConnectionStub()
+        );
+
+        relpAppenderRef = new AtomicReference<>(new RelpLogAppenderStub());
+        RelpLogAppender relpLogAppender = new RelpLogAppenderImpl(relpConnectionPool);
+        if (synchronizedAccess) {
+            relpLogAppender = new RelpLogAppenderSynchronized(relpLogAppender);
+        }
+        relpAppenderRef.set(relpLogAppender);
+    }
+
+    private static class SyslogRecordFactory {
+
+        private final String hostname;
+        private final String appName;
+        private final String originalHostname;
+        private final boolean useSD;
+        private final boolean enableSystemID;
+        private final String systemID;
+
+        public SyslogRecordFactory(
+                String hostname,
+                String appName,
+                String originalHostname,
+                boolean useSD,
+                boolean enableSystemID,
+                String systemID
+        ) {
+            this.hostname = hostname;
+            this.appName = appName;
+            this.originalHostname = originalHostname;
+            this.useSD = useSD;
+            this.enableSystemID = enableSystemID;
+            this.systemID = systemID;
+        }
+
+        public SyslogRecord create(String payload) {
+            SyslogRecord syslogRecord = new SyslogRecordConfigured(hostname, appName);
+            syslogRecord = new SyslogRecordTimestamp(syslogRecord);
+
+            // Add SD if enabled
+            if (this.useSD) {
+                syslogRecord = new SyslogRecordOrigin(syslogRecord, originalHostname);
+                syslogRecord = new SyslogRecordEventID(syslogRecord, originalHostname);
+            }
+            if (enableSystemID) {
+                syslogRecord = new SyslogRecordSystemID(syslogRecord, systemID);
+            }
+            syslogRecord.getRecord().withSDElement(new SDElement("x"));
+
+            return new SyslogRecordPayload(syslogRecord, payload);
+        }
     }
 
     @Override
     public void append(LogEvent event) {
-        if (!this.connected) {
-            connect();
-        }
-
-        // Craft syslog message
-        SyslogMessage syslog = new SyslogMessage()
-                .withTimestamp(new Date().getTime())
-                .withSeverity(Severity.WARNING)
-                .withAppName(this.appName)
-                .withHostname(this.hostname)
-                .withFacility(Facility.USER)
-                .withMsg(new String(getLayout().toByteArray(event), StandardCharsets.UTF_8));
-
-        // Add SD if enabled
-        if (this.useSD) {
-            SDElement event_id_48577 = new SDElement("event_id@48577")
-                    .addSDParam("hostname", this.hostname)
-                    .addSDParam("uuid", UUID.randomUUID().toString())
-                    .addSDParam("source", "source")
-                    .addSDParam("unixtime", Long.toString(System.currentTimeMillis()));
-            SDElement origin_48577 = new SDElement("origin@48577").addSDParam("hostname", this.hostname);
-            syslog = syslog.withSDElement(event_id_48577).withSDElement(origin_48577);
-        }
-
-        RelpBatch batch = new RelpBatch();
-        batch.insert(syslog.toRfc5424SyslogMessage().getBytes(StandardCharsets.UTF_8));
-
-        boolean allSent = false;
-        while (!allSent) {
-            try {
-                this.relpConnection.commit(batch);
-            }
-            catch (IllegalStateException | IOException | java.util.concurrent.TimeoutException e) {
-                System.out.println("RelpAppender.flush.commit> exception:");
-                e.printStackTrace();
-                this.relpConnection.tearDown();
-                this.connected = false;
-            }
-            // Check if everything has been sent, retry and reconnect if not.
-            if (!batch.verifyTransactionAll()) {
-                batch.retryAllFailed();
-                try {
-                    reconnect();
-                }
-                catch (IOException | TimeoutException e) {
-                    e.printStackTrace();
-                }
-            }
-            else {
-                allSent = true;
-            }
-        }
+        SyslogRecord syslogRecord = syslogRecordFactory
+                .create(new String(getLayout().toByteArray(event), StandardCharsets.UTF_8));
+        relpAppenderRef.get().append(syslogRecord);
     }
 
     @PluginFactory
     public static RelpAppender createAppender(
-            @PluginAttribute("name") String name,
-            @PluginAttribute("ignoreExceptions") boolean ignoreExceptions,
-            @PluginAttribute("hostname") String hostname,
-            @PluginAttribute("appName") String appName,
-            @PluginAttribute("readTimeout") int readTimeout,
-            @PluginAttribute("writeTimeout") int writeTimeout,
-            @PluginAttribute("reconnectInterval") int reconnectInterval,
-            @PluginAttribute("connectionTimeout") int connectionTimeout,
-            @PluginAttribute("useSD") boolean useSD,
-            @PluginAttribute("relpAddress") String relpAddress,
-            @PluginAttribute("relpPort") int relpPort,
-            @PluginAttribute("useTLS") boolean useTLS,
-            @PluginAttribute("keystorePath") String keystorePath,
-            @PluginAttribute("keystorePassword") String keystorePassword,
-            @PluginAttribute("tlsProtocol") String tlsProtocol,
+            @PluginAttribute(
+                    value = "name",
+                    defaultString = "localhost"
+            ) String name,
+            @PluginAttribute(
+                    value = "ignoreExceptions",
+                    defaultBoolean = false
+            ) boolean ignoreExceptions,
+            @PluginAttribute(
+                    value = "hostname",
+                    defaultString = "localhost.localdomain"
+            ) String hostname,
+            @PluginAttribute(
+                    value = "appName",
+                    defaultString = "jla-06"
+            ) String appName,
+            @PluginAttribute(
+                    value = "readTimeout",
+                    defaultInt = 1500
+            ) int readTimeout,
+            @PluginAttribute(
+                    value = "writeTimeout",
+                    defaultInt = 1500
+            ) int writeTimeout,
+            @PluginAttribute(
+                    value = "reconnectInterval",
+                    defaultInt = 500
+            ) int reconnectInterval,
+            @PluginAttribute(
+                    value = "connectionTimeout",
+                    defaultInt = 1500
+            ) int connectionTimeout,
+            @PluginAttribute(
+                    value = "useSD",
+                    defaultBoolean = true
+            ) boolean useSD,
+            @PluginAttribute(
+                    value = "relpAddress",
+                    defaultString = "127.0.0.1"
+            ) String relpAddress,
+            @PluginAttribute(
+                    value = "relpPort",
+                    defaultInt = 601
+            ) int relpPort,
+            @PluginAttribute(
+                    value = "useTLS",
+                    defaultBoolean = false
+            ) boolean useTLS,
+            @PluginAttribute(
+                    value = "keystorePath",
+                    defaultString = "/unset/path/to/keystore"
+            ) String keystorePath,
+            @PluginAttribute(
+                    value = "keystorePassword",
+                    defaultString = ""
+            ) String keystorePassword,
+            @PluginAttribute(
+                    value = "tlsProtocol",
+                    defaultString = "TLSv1.3"
+            ) String tlsProtocol,
+            @PluginAttribute(
+                    value = "enableSystemID",
+                    defaultBoolean = false
+            ) boolean enableSystemID,
+            @PluginAttribute(
+                    value = "systemID",
+                    defaultString = ""
+            ) String systemID,
+            @PluginAttribute(
+                    value = "rebindRequestAmount",
+                    defaultInt = 100_000
+            ) int rebindRequestAmount,
+            @PluginAttribute(
+                    value = "rebindEnabled",
+                    defaultBoolean = true
+            ) boolean rebindEnabled,
+            @PluginAttribute(
+                    value = "reconnectIfNoMessagesInterval",
+                    defaultInt = 150_000
+            ) int reconnectIfNoMessagesInterval,
+            @PluginAttribute(value = "synchronizedAccess") boolean synchronizedAccess,
             @PluginElement("Layout") Layout layout,
             @PluginElement("Filters") Filter filter
     ) {
-
-        SSLContext sslContext = null;
-        if (useTLS) {
-            try {
-                sslContext = SSLContextFactory.authenticatedContext(keystorePath, keystorePassword, tlsProtocol);
-            }
-            catch (IOException | GeneralSecurityException e) {
-                throw new RuntimeException(e);
-            }
-        }
 
         return new RelpAppender(
                 name,
@@ -205,59 +290,22 @@ public class RelpAppender extends AbstractAppender {
                 useSD,
                 relpAddress,
                 relpPort,
-                sslContext
+                useTLS,
+                keystorePath,
+                keystorePassword,
+                tlsProtocol,
+                enableSystemID,
+                systemID,
+                rebindRequestAmount,
+                rebindEnabled,
+                reconnectIfNoMessagesInterval,
+                synchronizedAccess
         );
     }
 
-    private void reconnect() throws IOException, TimeoutException {
-        disconnect();
-        connect();
-    }
-
-    private void disconnect() throws IOException, TimeoutException {
-        if (!this.connected) {
-            return;
-        }
-        try {
-            this.relpConnection.disconnect();
-        }
-        catch (IllegalStateException | IOException | java.util.concurrent.TimeoutException e) {
-            System.out.println("RelpAppender.disconnect> exception:");
-            e.printStackTrace();
-        }
-        this.relpConnection.tearDown();
-        this.connected = false;
-    }
-
-    private void connect() {
-        while (!this.connected) {
-            try {
-                this.connected = this.relpConnection.connect(this.relpAddress, this.relpPort);
-            }
-            catch (Exception e) {
-                System.out.println("RelpAppender.connect> exception:");
-                e.printStackTrace();
-            }
-            if (!this.connected) {
-                try {
-                    Thread.sleep(this.reconnectInterval);
-                }
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
     @Override
-    public boolean stop(long timeout, TimeUnit timeUnit) {
-        try {
-            disconnect();
-            return true;
-        }
-        catch (IOException | TimeoutException e) {
-            e.printStackTrace();
-        }
-        return false;
+    public void stop() {
+        super.stop();
+        relpAppenderRef.get().stop();
     }
 }
