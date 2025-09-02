@@ -21,7 +21,7 @@ import com.teragrep.jla_06.server.TestServerFactory;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.impl.Log4jLogEvent;
-import org.apache.logging.log4j.core.layout.MessageLayout;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.message.SimpleMessage;
 import org.junit.jupiter.api.*;
 
@@ -48,20 +48,20 @@ public class RelpAppenderTest {
             RelpAppender relpAppender = createRelpAppender();
             relpAppender.start();
             Log4jLogEvent.newBuilder().setMessage(null).build();
-            relpAppender.append(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage("XXX")).build());
+            relpAppender
+                    .append(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage(testPayload)).setThreadName("ThreadXyz").setLoggerName("LoggerXyz").setLevel(Level.INFO).setTimeMillis(1).build());
         }
         Assertions.assertEquals(1, messageList.size(), "messageList size not expected");
+        byte[] message = messageList.getFirst();
+        System.out.println("Message: " + new String(message, StandardCharsets.UTF_8));
+        Assertions.assertArrayEquals(testPayload.getBytes(StandardCharsets.UTF_8), message, "payload not expected");
     }
 
     private RelpAppender createRelpAppender() {
-        Layout layout = MessageLayout.createLayout();
-        layout.toByteArray(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage("XXX")).build());
-        System.out.println("layout: " + layout);
-        System.out
-                .println(
-                        "layout.toByteArray: "
-                                + new String(layout.toByteArray(Log4jLogEvent.newBuilder().setTimeMillis(0).setLevel(Level.INFO).setMessage(new SimpleMessage("XXX")).build()), StandardCharsets.UTF_8)
-                );
+        Layout<String> layout = PatternLayout
+                .newBuilder()
+                .withPattern("%d{dd.MM.yyyy HH:mm:ss.SSS} [%level] [%logger] [%thread] %msg%ex%n")
+                .build();
         return RelpAppender
                 .createAppender(
                         "relpAppender", false, "jla_06", "jla_06", 5000, 5000, 5000, 5000, true, "127.0.0.1", 1601,
