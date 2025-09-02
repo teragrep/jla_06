@@ -32,6 +32,12 @@ appender.RelpAppender.writeTimeout=2000
 appender.RelpAppender.readTimeout=15000
 appender.RelpAppender.reconnectInterval=3000
 appender.RelpAppender.useSD=true
+appender.RelpAppender.enableSystemID=false
+appender.RelpAppender.systemID=""
+appender.RelpAppender.rebindRequestAmount=100000
+appender.RelpAppender.rebindEnabled=true
+appender.RelpAppender.reconnectIfNoMessagesInterval=150000
+appender.RelpAppender.synchronizedAccess=false
 
 logger.RelpAppender.name=RelpAppender
 logger.RelpAppender.level=debug
@@ -73,6 +79,30 @@ log4j2.shutdownHookEnabled=false
  
 |appender.RelpAppender.useSD
 |Enables structured data containing uuid and source information
+|===
+
+|appender.RelpAppender.enableSystemID
+|Enables structured data containing SystemID information
+|===
+
+|appender.RelpAppender.systemID
+|Value used for systemID when enableSystemID=true
+|===
+
+|appender.RelpAppender.rebindRequestAmount
+|How often rebind the RELP connection
+|===
+
+|appender.RelpAppender.rebindEnabled
+|Whether rebinding the RELP connection is enablaed
+|===
+
+|appender.RelpAppender.reconnectIfNoMessagesInterval
+|Reconnect RELP if last message was over reconnectIfNoMessagesInterval milliseconds ago.
+|===
+
+|appender.RelpAppender.synchronizedAccess
+|Whether to use Synchronized RelpLogAppender
 |===
 
 == Maven dependency definition
