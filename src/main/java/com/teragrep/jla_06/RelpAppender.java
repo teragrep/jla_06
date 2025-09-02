@@ -53,93 +53,17 @@ public class RelpAppender extends AbstractAppender {
 
     private RelpConnection relpConnection;
     private RelpBatch batch;
-    String appName;
-    int connectionTimeout;
-    String hostname;
-    int readTimeout;
-    String relpAddress;
-    boolean useSD;
-    int relpPort;
-    int writeTimeout;
-    int reconnectInterval;
+    private final String appName;
+    private final int connectionTimeout;
+    private final String hostname;
+    private final int readTimeout;
+    private final String relpAddress;
+    private final boolean useSD;
+    private final int relpPort;
+    private final int writeTimeout;
+    private final int reconnectInterval;
     boolean connected = false;
     SSLContext sslContext;
-
-    public int getReconnectInterval() {
-        return reconnectInterval;
-    }
-
-    public void setReconnectInterval(int reconnectInterval) {
-        this.reconnectInterval = reconnectInterval;
-    }
-
-    public String getHostname() {
-        return this.hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public String getRelpAddress() {
-        return this.relpAddress;
-    }
-
-    public void setRelpAddress(String address) {
-        this.relpAddress = address;
-    }
-
-    public int getConnectionTimeout() {
-        return this.connectionTimeout;
-    }
-
-    public void setConnectionTimeout(int connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
-    }
-
-    public int getWriteTimeout() {
-        return this.writeTimeout;
-    }
-
-    public void setWriteTimeout(int writeTimeout) {
-        this.writeTimeout = writeTimeout;
-    }
-
-    public int getReadTimeout() {
-        return this.readTimeout;
-    }
-
-    public void setReadTimeout(int readTimeout) {
-        this.readTimeout = readTimeout;
-    }
-
-    public int getRelpPort() {
-        return this.relpPort;
-    }
-
-    public void setRelpPort(int port) {
-        this.relpPort = port;
-    }
-
-    public String getAppName() {
-        return this.appName;
-    }
-
-    public void setAppName(String app) {
-        this.appName = app;
-    }
-
-    public void setUseSD(Boolean useSD) {
-        this.useSD = useSD;
-    }
-
-    public boolean getUseSD() {
-        return this.useSD;
-    }
-
-    public void setSslContext(SSLContext sslContext) {
-        this.sslContext = sslContext;
-    }
 
     protected RelpAppender(
             String name,
@@ -159,21 +83,20 @@ public class RelpAppender extends AbstractAppender {
             SSLContext sslContext
     ) {
         super(name, filter, layout, ignoreExceptions, properties);
-        this.setHostname(hostname);
-        this.setAppName(appName);
-        this.setReadTimeout(readTimeout);
-        this.setWriteTimeout(writeTimeout);
-        this.setReconnectInterval(reconnectInterval);
-        this.setConnectionTimeout(connectionTimeout);
-        this.setUseSD(useSD);
-        this.setRelpAddress(relpAddress);
-        this.setRelpPort(relpPort);
-        this.setSslContext(sslContext);
+        this.hostname = hostname;
+        this.appName = appName;
+        this.readTimeout = readTimeout;
+        this.writeTimeout = writeTimeout;
+        this.reconnectInterval = reconnectInterval;
+        this.connectionTimeout = connectionTimeout;
+        this.useSD = useSD;
+        this.relpAddress = relpAddress;
+        this.relpPort = relpPort;
+        this.sslContext = sslContext;
         if (sslContext == null) {
             this.relpConnection = new RelpConnection();
         }
         else {
-            SSLEngine sslEngine = sslContext.createSSLEngine();
             Supplier<SSLEngine> sslEngineSupplier = sslContext::createSSLEngine;
             this.relpConnection = new RelpConnection(sslEngineSupplier);
         }
@@ -185,28 +108,24 @@ public class RelpAppender extends AbstractAppender {
         if (!this.connected) {
             connect();
         }
-        if (event == null) {
-            System.out.println("x");
-            throw new RuntimeException("xyz");
-        }
 
         // Craft syslog message
         SyslogMessage syslog = new SyslogMessage()
                 .withTimestamp(new Date().getTime())
                 .withSeverity(Severity.WARNING)
-                .withAppName(this.getAppName())
-                .withHostname(this.getHostname())
+                .withAppName(this.appName)
+                .withHostname(this.hostname)
                 .withFacility(Facility.USER)
                 .withMsg(new String(getLayout().toByteArray(event), StandardCharsets.UTF_8));
 
         // Add SD if enabled
-        if (this.getUseSD()) {
+        if (this.useSD) {
             SDElement event_id_48577 = new SDElement("event_id@48577")
-                    .addSDParam("hostname", this.getHostname())
+                    .addSDParam("hostname", this.hostname)
                     .addSDParam("uuid", UUID.randomUUID().toString())
                     .addSDParam("source", "source")
                     .addSDParam("unixtime", Long.toString(System.currentTimeMillis()));
-            SDElement origin_48577 = new SDElement("origin@48577").addSDParam("hostname", this.getHostname());
+            SDElement origin_48577 = new SDElement("origin@48577").addSDParam("hostname", this.hostname);
             syslog = syslog.withSDElement(event_id_48577).withSDElement(origin_48577);
         }
 
@@ -313,7 +232,7 @@ public class RelpAppender extends AbstractAppender {
     private void connect() {
         while (!this.connected) {
             try {
-                this.connected = this.relpConnection.connect(this.getRelpAddress(), this.getRelpPort());
+                this.connected = this.relpConnection.connect(this.relpAddress, this.relpPort);
             }
             catch (Exception e) {
                 System.out.println("RelpAppender.connect> exception:");
@@ -321,7 +240,7 @@ public class RelpAppender extends AbstractAppender {
             }
             if (!this.connected) {
                 try {
-                    Thread.sleep(this.getReconnectInterval());
+                    Thread.sleep(this.reconnectInterval);
                 }
                 catch (InterruptedException e) {
                     e.printStackTrace();
