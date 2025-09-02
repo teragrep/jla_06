@@ -18,6 +18,7 @@ package com.teragrep.jla_06;
 
 import com.teragrep.jla_06.server.TestServer;
 import com.teragrep.jla_06.server.TestServerFactory;
+import com.teragrep.rlo_06.RFC5424Frame;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.impl.Log4jLogEvent;
@@ -25,9 +26,11 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.message.SimpleMessage;
 import org.junit.jupiter.api.*;
 
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayInputStream;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 public class RelpAppenderTest {
 
@@ -50,18 +53,34 @@ public class RelpAppenderTest {
             Log4jLogEvent.newBuilder().setMessage(null).build();
             relpAppender
                     .append(Log4jLogEvent.newBuilder().setMessage(new SimpleMessage(testPayload)).setThreadName("ThreadXyz").setLoggerName("LoggerXyz").setLevel(Level.INFO).setTimeMillis(1).build());
+            relpAppender.stop();
         }
         Assertions.assertEquals(1, messageList.size(), "messageList size not expected");
-        byte[] message = messageList.getFirst();
-        System.out.println("Message: " + new String(message, StandardCharsets.UTF_8));
-        Assertions.assertArrayEquals(testPayload.getBytes(StandardCharsets.UTF_8), message, "payload not expected");
+
+        for (byte[] message : messageList) {
+            RFC5424Frame rfc5424Frame = new RFC5424Frame();
+            rfc5424Frame.load(new ByteArrayInputStream(message));
+
+            AtomicBoolean hasNext = new AtomicBoolean();
+            Assertions.assertDoesNotThrow(() -> hasNext.set(rfc5424Frame.next()));
+            Assertions.assertTrue(hasNext.get());
+
+            Assertions.assertEquals("jla_06", rfc5424Frame.hostname.toString());
+            Assertions.assertEquals("jla_06", rfc5424Frame.appName.toString());
+
+            Pattern timestampPattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z");
+
+            Assertions.assertTrue(timestampPattern.matcher(rfc5424Frame.timestamp.toString()).matches());
+
+            Assertions.assertEquals(testPayload, rfc5424Frame.msg.toString());
+        }
+
+        Assertions.assertEquals(1, openCount.get(), "openCount not expected");
+        Assertions.assertEquals(1, closeCount.get(), "closeCount not expected");
     }
 
     private RelpAppender createRelpAppender() {
-        Layout<String> layout = PatternLayout
-                .newBuilder()
-                .withPattern("%d{dd.MM.yyyy HH:mm:ss.SSS} [%level] [%logger] [%thread] %msg%ex%n")
-                .build();
+        Layout<String> layout = PatternLayout.newBuilder().withPattern("%msg").build();
         return RelpAppender
                 .createAppender(
                         "relpAppender", false, "jla_06", "jla_06", 5000, 5000, 5000, 5000, true, "127.0.0.1", 1601,
