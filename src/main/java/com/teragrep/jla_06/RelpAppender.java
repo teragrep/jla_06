@@ -16,18 +16,18 @@
  */
 package com.teragrep.jla_06;
 
-import com.teragrep.jla_07.RelpLogAppender;
-import com.teragrep.jla_07.RelpLogAppenderImpl;
-import com.teragrep.jla_07.RelpLogAppenderStub;
-import com.teragrep.jla_07.RelpLogAppenderSynchronized;
-import com.teragrep.jla_07.syslog.SyslogRecord;
-import com.teragrep.jla_07.syslog.SyslogRecordConfigured;
-import com.teragrep.jla_07.syslog.SyslogRecordEventID;
-import com.teragrep.jla_07.syslog.SyslogRecordOrigin;
-import com.teragrep.jla_07.syslog.SyslogRecordPayload;
-import com.teragrep.jla_07.syslog.SyslogRecordSystemID;
-import com.teragrep.jla_07.syslog.SyslogRecordTimestamp;
-import com.teragrep.jla_07.syslog.hostname.Hostname;
+import com.teragrep.jla_06.lib.RelpLogAppender;
+import com.teragrep.jla_06.lib.RelpLogAppenderImpl;
+import com.teragrep.jla_06.lib.RelpLogAppenderStub;
+import com.teragrep.jla_06.lib.RelpLogAppenderSynchronized;
+import com.teragrep.jla_06.lib.syslog.SyslogRecord;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordConfigured;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordEventID;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordOrigin;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordPayload;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordSystemID;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordTimestamp;
+import com.teragrep.jla_06.lib.syslog.hostname.Hostname;
 import com.teragrep.rlp_01.client.IManagedRelpConnection;
 import com.teragrep.rlp_01.client.ManagedRelpConnectionStub;
 import com.teragrep.rlp_01.client.RelpConfig;

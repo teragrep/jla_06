@@ -14,37 +14,28 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_07;
+package com.teragrep.jla_06.lib;
 
-import com.teragrep.jla_07.syslog.*;
-import com.teragrep.rlp_01.client.IManagedRelpConnection;
-import com.teragrep.rlp_01.pool.Pool;
+import com.teragrep.jla_06.lib.syslog.SyslogRecord;
 
-import java.nio.charset.StandardCharsets;
-
-public final class RelpLogAppenderImpl implements RelpLogAppender {
-
-    private final Pool<IManagedRelpConnection> relpConnectionPool;
-
-    public RelpLogAppenderImpl(Pool<IManagedRelpConnection> relpConnectionPool) {
-        this.relpConnectionPool = relpConnectionPool;
-    }
+public final class RelpLogAppenderStub implements RelpLogAppender {
 
     @Override
     public void append(SyslogRecord syslogRecord) {
-        IManagedRelpConnection connection = relpConnectionPool.get();
-
-        connection.ensureSent(syslogRecord.getRecord().toRfc5424SyslogMessage().getBytes(StandardCharsets.UTF_8));
-        relpConnectionPool.offer(connection);
+        throw new UnsupportedOperationException(
+                "RelpAppenderStub does not support this. Perhaps appender is not started yet."
+        );
     }
 
     @Override
     public void stop() {
-        relpConnectionPool.close();
+        throw new UnsupportedOperationException(
+                "RelpAppenderStub does not support this. Perhaps appender is not started yet."
+        );
     }
 
     @Override
     public boolean isStub() {
-        return false;
+        return true;
     }
 }

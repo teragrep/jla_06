@@ -14,27 +14,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_07.syslog;
+package com.teragrep.jla_06.lib.syslog;
 
-import com.teragrep.rlo_14.SDElement;
 import com.teragrep.rlo_14.SyslogMessage;
 
-public final class SyslogRecordSystemID implements SyslogRecord {
+public interface SyslogRecord {
 
-    private final SyslogRecord syslogRecord;
-    private final String systemID;
-
-    public SyslogRecordSystemID(SyslogRecord syslogRecord, String systemID) {
-        this.syslogRecord = syslogRecord;
-        this.systemID = systemID;
-    }
-
-    @Override
-    public SyslogMessage getRecord() {
-        final SDElement systemIDSD = new SDElement("businessSystem@48577");
-
-        systemIDSD.addSDParam("systemId", systemID);
-
-        return syslogRecord.getRecord().withSDElement(systemIDSD);
-    }
+    SyslogMessage getRecord();
 }

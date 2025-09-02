@@ -14,24 +14,30 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_07.syslog;
+package com.teragrep.jla_06.lib;
 
-import com.teragrep.rlo_14.SyslogMessage;
+import com.teragrep.jla_06.lib.syslog.SyslogRecord;
 
-public final class SyslogRecordPayload implements SyslogRecord {
+public final class RelpLogAppenderSynchronized implements RelpLogAppender {
 
-    private final SyslogRecord syslogRecord;
-    private final String payload;
+    private final RelpLogAppender appender;
 
-    public SyslogRecordPayload(SyslogRecord syslogRecord, String payload) {
-        this.syslogRecord = syslogRecord;
-        this.payload = payload;
+    public RelpLogAppenderSynchronized(RelpLogAppender relpLogAppender) {
+        this.appender = relpLogAppender;
     }
 
     @Override
-    public SyslogMessage getRecord() {
-        SyslogMessage syslogMessage = syslogRecord.getRecord();
-        syslogMessage.withMsg(payload);
-        return syslogMessage;
+    public synchronized void append(SyslogRecord syslogRecord) {
+        appender.append(syslogRecord);
+    }
+
+    @Override
+    public void stop() {
+        appender.stop();
+    }
+
+    @Override
+    public boolean isStub() {
+        return false;
     }
 }

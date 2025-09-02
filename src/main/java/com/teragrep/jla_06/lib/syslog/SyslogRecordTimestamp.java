@@ -14,11 +14,28 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_07.syslog;
+package com.teragrep.jla_06.lib.syslog;
 
 import com.teragrep.rlo_14.SyslogMessage;
 
-public interface SyslogRecord {
+import java.time.Instant;
 
-    SyslogMessage getRecord();
+public final class SyslogRecordTimestamp implements SyslogRecord {
+
+    private final SyslogRecord syslogRecord;
+    private final Instant timestamp;
+
+    public SyslogRecordTimestamp(SyslogRecord syslogRecord) {
+        this(syslogRecord, Instant.now());
+    }
+
+    public SyslogRecordTimestamp(SyslogRecord syslogRecord, Instant timestamp) {
+        this.syslogRecord = syslogRecord;
+        this.timestamp = timestamp;
+    }
+
+    @Override
+    public SyslogMessage getRecord() {
+        return syslogRecord.getRecord().withTimestamp(timestamp.toEpochMilli());
+    }
 }

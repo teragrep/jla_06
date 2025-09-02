@@ -14,9 +14,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_07;
+package com.teragrep.jla_06.lib;
 
-import com.teragrep.jla_07.syslog.SyslogRecord;
+import com.teragrep.jla_06.lib.syslog.SyslogRecord;
 import com.teragrep.rlp_01.pool.Stubable;
 
 public interface RelpLogAppender extends Stubable {

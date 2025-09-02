@@ -14,7 +14,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_07.syslog;
+package com.teragrep.jla_06.lib.syslog;
 
 import com.teragrep.rlo_14.Facility;
 import com.teragrep.rlo_14.Severity;

@@ -14,28 +14,24 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_07.syslog.hostname;
+package com.teragrep.jla_06.lib.syslog;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import com.teragrep.rlo_14.SyslogMessage;
 
-public final class Hostname {
+public final class SyslogRecordPayload implements SyslogRecord {
 
-    private final String defaultHostname;
+    private final SyslogRecord syslogRecord;
+    private final String payload;
 
-    public Hostname(final String defaultHostname) {
-        this.defaultHostname = defaultHostname;
+    public SyslogRecordPayload(SyslogRecord syslogRecord, String payload) {
+        this.syslogRecord = syslogRecord;
+        this.payload = payload;
     }
 
-    public String hostname() {
-        String rv;
-        try {
-            rv = InetAddress.getLocalHost().getHostName();
-        }
-        catch (UnknownHostException e) {
-            rv = defaultHostname;
-            System.err.println("Could not determine hostname, defaulting to <[" + defaultHostname + "]>");
-        }
-        return rv;
+    @Override
+    public SyslogMessage getRecord() {
+        SyslogMessage syslogMessage = syslogRecord.getRecord();
+        syslogMessage.withMsg(payload);
+        return syslogMessage;
     }
 }

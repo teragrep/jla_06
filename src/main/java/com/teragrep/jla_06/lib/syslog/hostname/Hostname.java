@@ -14,28 +14,28 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package com.teragrep.jla_07;
+package com.teragrep.jla_06.lib.syslog.hostname;
 
-import com.teragrep.jla_07.syslog.SyslogRecord;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
-public final class RelpLogAppenderStub implements RelpLogAppender {
+public final class Hostname {
 
-    @Override
-    public void append(SyslogRecord syslogRecord) {
-        throw new UnsupportedOperationException(
-                "RelpAppenderStub does not support this. Perhaps appender is not started yet."
-        );
+    private final String defaultHostname;
+
+    public Hostname(final String defaultHostname) {
+        this.defaultHostname = defaultHostname;
     }
 
-    @Override
-    public void stop() {
-        throw new UnsupportedOperationException(
-                "RelpAppenderStub does not support this. Perhaps appender is not started yet."
-        );
-    }
-
-    @Override
-    public boolean isStub() {
-        return true;
+    public String hostname() {
+        String rv;
+        try {
+            rv = InetAddress.getLocalHost().getHostName();
+        }
+        catch (UnknownHostException e) {
+            rv = defaultHostname;
+            System.err.println("Could not determine hostname, defaulting to <[" + defaultHostname + "]>");
+        }
+        return rv;
     }
 }
