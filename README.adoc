@@ -94,7 +94,7 @@ log4j2.shutdownHookEnabled=false
 |===
 
 |appender.RelpAppender.rebindEnabled
-|Whether rebinding the RELP connection is enablaed
+|Whether rebinding the RELP connection is enabled
 |===
 
 |appender.RelpAppender.reconnectIfNoMessagesInterval
