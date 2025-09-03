@@ -14,24 +14,30 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+package com.teragrep.jla_06.lib;
 
-package com.teragrep.jla_06;
+import com.teragrep.jla_06.lib.syslog.SyslogRecord;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.*;
+public final class RelpLogAppenderSynchronized implements RelpLogAppender {
 
-public class RelpAppenderTest {
-    private static final Logger logger = LogManager.getLogger(RelpAppenderTest.class.getName());
-    //@Test
-    @DisplayName("Tests normal usage")
-    public void testUsage() {
-        Assertions.assertAll(() -> {
-            logger.debug("Debug message");
-            logger.info("Info message");
-            logger.warn("Warning message");
-            logger.error("Error message");
-            LogManager.shutdown(true);
-        });
+    private final RelpLogAppender appender;
+
+    public RelpLogAppenderSynchronized(RelpLogAppender relpLogAppender) {
+        this.appender = relpLogAppender;
+    }
+
+    @Override
+    public synchronized void append(SyslogRecord syslogRecord) {
+        appender.append(syslogRecord);
+    }
+
+    @Override
+    public void stop() {
+        appender.stop();
+    }
+
+    @Override
+    public boolean isStub() {
+        return false;
     }
 }
