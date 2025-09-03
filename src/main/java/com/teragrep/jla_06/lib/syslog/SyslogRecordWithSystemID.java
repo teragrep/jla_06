@@ -18,32 +18,23 @@ package com.teragrep.jla_06.lib.syslog;
 
 import com.teragrep.rlo_14.SDElement;
 import com.teragrep.rlo_14.SyslogMessage;
-import java.util.UUID;
 
-public final class SyslogRecordEventID implements SyslogRecord {
+public final class SyslogRecordWithSystemID implements SyslogRecord {
 
     private final SyslogRecord syslogRecord;
-    private final String hostname;
+    private final String systemID;
 
-    public SyslogRecordEventID(SyslogRecord syslogRecord, String hostname) {
+    public SyslogRecordWithSystemID(SyslogRecord syslogRecord, String systemID) {
         this.syslogRecord = syslogRecord;
-        this.hostname = hostname;
+        this.systemID = systemID;
     }
 
     @Override
     public SyslogMessage asSyslogMessage() {
-        final SDElement eventIdSDE = new SDElement("event_id@48577");
+        final SDElement systemIDSD = new SDElement("businessSystem@48577");
 
-        eventIdSDE.addSDParam("hostname", hostname);
+        systemIDSD.addSDParam("systemId", systemID);
 
-        String uuid = UUID.randomUUID().toString();
-        eventIdSDE.addSDParam("uuid", uuid);
-        eventIdSDE.addSDParam("source", "source");
-
-        long unixtime = System.currentTimeMillis();
-        String epochtime = Long.toString(unixtime);
-        eventIdSDE.addSDParam("unixtime", epochtime);
-
-        return syslogRecord.asSyslogMessage().withSDElement(eventIdSDE);
+        return syslogRecord.asSyslogMessage().withSDElement(systemIDSD);
     }
 }

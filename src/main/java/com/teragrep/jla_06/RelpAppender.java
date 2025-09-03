@@ -21,11 +21,11 @@ import com.teragrep.jla_06.lib.RelpLogAppenderImpl;
 import com.teragrep.jla_06.lib.RelpLogAppenderSynchronized;
 import com.teragrep.jla_06.lib.syslog.SyslogRecord;
 import com.teragrep.jla_06.lib.syslog.SyslogRecordConfigured;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordEventID;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordOrigin;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordPayload;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordSystemID;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordTimestamp;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordWithEventID;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordWithOrigin;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordWithPayload;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordWithSystemID;
+import com.teragrep.jla_06.lib.syslog.SyslogRecordWithTimestamp;
 import com.teragrep.jla_06.lib.syslog.hostname.Hostname;
 import com.teragrep.rlp_01.client.IManagedRelpConnection;
 import com.teragrep.rlp_01.client.ManagedRelpConnectionStub;
@@ -161,18 +161,18 @@ public class RelpAppender extends AbstractAppender {
 
         public SyslogRecord create(String payload) {
             SyslogRecord syslogRecord = new SyslogRecordConfigured(hostname, appName);
-            syslogRecord = new SyslogRecordTimestamp(syslogRecord);
+            syslogRecord = new SyslogRecordWithTimestamp(syslogRecord);
 
             // Add SD if enabled
             if (this.useSD) {
-                syslogRecord = new SyslogRecordOrigin(syslogRecord, originalHostname);
-                syslogRecord = new SyslogRecordEventID(syslogRecord, originalHostname);
+                syslogRecord = new SyslogRecordWithOrigin(syslogRecord, originalHostname);
+                syslogRecord = new SyslogRecordWithEventID(syslogRecord, originalHostname);
             }
             if (enableSystemID) {
-                syslogRecord = new SyslogRecordSystemID(syslogRecord, systemID);
+                syslogRecord = new SyslogRecordWithSystemID(syslogRecord, systemID);
             }
 
-            return new SyslogRecordPayload(syslogRecord, payload);
+            return new SyslogRecordWithPayload(syslogRecord, payload);
         }
     }
 

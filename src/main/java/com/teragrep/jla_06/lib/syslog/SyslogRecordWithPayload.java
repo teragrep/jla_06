@@ -18,24 +18,20 @@ package com.teragrep.jla_06.lib.syslog;
 
 import com.teragrep.rlo_14.SyslogMessage;
 
-import java.time.Instant;
-
-public final class SyslogRecordTimestamp implements SyslogRecord {
+public final class SyslogRecordWithPayload implements SyslogRecord {
 
     private final SyslogRecord syslogRecord;
-    private final Instant timestamp;
+    private final String payload;
 
-    public SyslogRecordTimestamp(SyslogRecord syslogRecord) {
-        this(syslogRecord, Instant.now());
-    }
-
-    public SyslogRecordTimestamp(SyslogRecord syslogRecord, Instant timestamp) {
+    public SyslogRecordWithPayload(SyslogRecord syslogRecord, String payload) {
         this.syslogRecord = syslogRecord;
-        this.timestamp = timestamp;
+        this.payload = payload;
     }
 
     @Override
     public SyslogMessage asSyslogMessage() {
-        return syslogRecord.asSyslogMessage().withTimestamp(timestamp.toEpochMilli());
+        SyslogMessage syslogMessage = syslogRecord.asSyslogMessage();
+        syslogMessage.withMsg(payload);
+        return syslogMessage;
     }
 }

@@ -19,22 +19,22 @@ package com.teragrep.jla_06.lib.syslog;
 import com.teragrep.rlo_14.SDElement;
 import com.teragrep.rlo_14.SyslogMessage;
 
-public final class SyslogRecordSystemID implements SyslogRecord {
+public final class SyslogRecordWithOrigin implements SyslogRecord {
 
     private final SyslogRecord syslogRecord;
-    private final String systemID;
+    private final String hostname;
 
-    public SyslogRecordSystemID(SyslogRecord syslogRecord, String systemID) {
+    public SyslogRecordWithOrigin(SyslogRecord syslogRecord, String hostname) {
         this.syslogRecord = syslogRecord;
-        this.systemID = systemID;
+        this.hostname = hostname;
     }
 
     @Override
     public SyslogMessage asSyslogMessage() {
-        final SDElement systemIDSD = new SDElement("businessSystem@48577");
+        final SDElement origin = new SDElement("origin@48577");
+        origin.addSDParam("hostname", hostname);
 
-        systemIDSD.addSDParam("systemId", systemID);
-
-        return syslogRecord.asSyslogMessage().withSDElement(systemIDSD);
+        return syslogRecord.asSyslogMessage().withSDElement(origin);
     }
+
 }
