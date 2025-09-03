@@ -20,12 +20,6 @@ import com.teragrep.jla_06.lib.RelpLogAppender;
 import com.teragrep.jla_06.lib.RelpLogAppenderImpl;
 import com.teragrep.jla_06.lib.RelpLogAppenderSynchronized;
 import com.teragrep.jla_06.lib.syslog.SyslogRecord;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordConfigured;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordWithEventID;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordWithOrigin;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordWithPayload;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordWithSystemID;
-import com.teragrep.jla_06.lib.syslog.SyslogRecordWithTimestamp;
 import com.teragrep.jla_06.lib.syslog.hostname.Hostname;
 import com.teragrep.rlp_01.client.IManagedRelpConnection;
 import com.teragrep.rlp_01.client.ManagedRelpConnectionStub;
@@ -131,48 +125,6 @@ public class RelpAppender extends AbstractAppender {
         }
         else {
             this.relpLogAppender = new RelpLogAppenderSynchronized(new RelpLogAppenderImpl(relpConnectionPool));
-        }
-    }
-
-    private static class SyslogRecordFactory {
-
-        private final String hostname;
-        private final String appName;
-        private final String originalHostname;
-        private final boolean useSD;
-        private final boolean enableSystemID;
-        private final String systemID;
-
-        public SyslogRecordFactory(
-                String hostname,
-                String appName,
-                String originalHostname,
-                boolean useSD,
-                boolean enableSystemID,
-                String systemID
-        ) {
-            this.hostname = hostname;
-            this.appName = appName;
-            this.originalHostname = originalHostname;
-            this.useSD = useSD;
-            this.enableSystemID = enableSystemID;
-            this.systemID = systemID;
-        }
-
-        public SyslogRecord create(String payload) {
-            SyslogRecord syslogRecord = new SyslogRecordConfigured(hostname, appName);
-            syslogRecord = new SyslogRecordWithTimestamp(syslogRecord);
-
-            // Add SD if enabled
-            if (this.useSD) {
-                syslogRecord = new SyslogRecordWithOrigin(syslogRecord, originalHostname);
-                syslogRecord = new SyslogRecordWithEventID(syslogRecord, originalHostname);
-            }
-            if (enableSystemID) {
-                syslogRecord = new SyslogRecordWithSystemID(syslogRecord, systemID);
-            }
-
-            return new SyslogRecordWithPayload(syslogRecord, payload);
         }
     }
 
