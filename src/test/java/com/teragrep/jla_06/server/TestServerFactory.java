@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
-public class TestServerFactory {
+public final class TestServerFactory {
 
     public TestServer create(
             int port,

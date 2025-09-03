@@ -21,7 +21,7 @@ import com.teragrep.net_01.server.Server;
 
 import java.util.concurrent.ExecutorService;
 
-public class TestServer implements Runnable, AutoCloseable {
+public final class TestServer implements Runnable, AutoCloseable {
 
     private final EventLoop eventLoop;
     private final Thread eventLoopThread;
