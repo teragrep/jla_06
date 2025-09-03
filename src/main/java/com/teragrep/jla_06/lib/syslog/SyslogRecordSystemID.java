@@ -30,11 +30,11 @@ public final class SyslogRecordSystemID implements SyslogRecord {
     }
 
     @Override
-    public SyslogMessage getRecord() {
+    public SyslogMessage asSyslogMessage() {
         final SDElement systemIDSD = new SDElement("businessSystem@48577");
 
         systemIDSD.addSDParam("systemId", systemID);
 
-        return syslogRecord.getRecord().withSDElement(systemIDSD);
+        return syslogRecord.asSyslogMessage().withSDElement(systemIDSD);
     }
 }

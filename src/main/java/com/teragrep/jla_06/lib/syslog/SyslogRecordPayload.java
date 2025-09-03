@@ -29,8 +29,8 @@ public final class SyslogRecordPayload implements SyslogRecord {
     }
 
     @Override
-    public SyslogMessage getRecord() {
-        SyslogMessage syslogMessage = syslogRecord.getRecord();
+    public SyslogMessage asSyslogMessage() {
+        SyslogMessage syslogMessage = syslogRecord.asSyslogMessage();
         syslogMessage.withMsg(payload);
         return syslogMessage;
     }

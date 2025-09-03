@@ -35,7 +35,7 @@ public final class SyslogRecordTimestamp implements SyslogRecord {
     }
 
     @Override
-    public SyslogMessage getRecord() {
-        return syslogRecord.getRecord().withTimestamp(timestamp.toEpochMilli());
+    public SyslogMessage asSyslogMessage() {
+        return syslogRecord.asSyslogMessage().withTimestamp(timestamp.toEpochMilli());
     }
 }

@@ -39,7 +39,7 @@ public final class SyslogRecordConfigured implements SyslogRecord {
     }
 
     @Override
-    public SyslogMessage getRecord() {
+    public SyslogMessage asSyslogMessage() {
         SyslogMessage syslogMessage = new SyslogMessage();
         syslogMessage = syslogMessage.withFacility(facility);
         syslogMessage = syslogMessage.withSeverity(severity);

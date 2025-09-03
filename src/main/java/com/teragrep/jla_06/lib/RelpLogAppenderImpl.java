@@ -34,7 +34,7 @@ public final class RelpLogAppenderImpl implements RelpLogAppender {
     public void append(SyslogRecord syslogRecord) {
         IManagedRelpConnection connection = relpConnectionPool.get();
 
-        connection.ensureSent(syslogRecord.getRecord().toRfc5424SyslogMessage().getBytes(StandardCharsets.UTF_8));
+        connection.ensureSent(syslogRecord.asSyslogMessage().toRfc5424SyslogMessage().getBytes(StandardCharsets.UTF_8));
         relpConnectionPool.offer(connection);
     }
 

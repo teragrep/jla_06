@@ -20,5 +20,5 @@ import com.teragrep.rlo_14.SyslogMessage;
 
 public interface SyslogRecord {
 
-    SyslogMessage getRecord();
+    SyslogMessage asSyslogMessage();
 }

@@ -30,11 +30,11 @@ public final class SyslogRecordOrigin implements SyslogRecord {
     }
 
     @Override
-    public SyslogMessage getRecord() {
+    public SyslogMessage asSyslogMessage() {
         final SDElement origin = new SDElement("origin@48577");
         origin.addSDParam("hostname", hostname);
 
-        return syslogRecord.getRecord().withSDElement(origin);
+        return syslogRecord.asSyslogMessage().withSDElement(origin);
     }
 
 }

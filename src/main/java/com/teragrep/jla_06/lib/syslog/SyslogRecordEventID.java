@@ -31,7 +31,7 @@ public final class SyslogRecordEventID implements SyslogRecord {
     }
 
     @Override
-    public SyslogMessage getRecord() {
+    public SyslogMessage asSyslogMessage() {
         final SDElement eventIdSDE = new SDElement("event_id@48577");
 
         eventIdSDE.addSDParam("hostname", hostname);
@@ -44,6 +44,6 @@ public final class SyslogRecordEventID implements SyslogRecord {
         String epochtime = Long.toString(unixtime);
         eventIdSDE.addSDParam("unixtime", epochtime);
 
-        return syslogRecord.getRecord().withSDElement(eventIdSDE);
+        return syslogRecord.asSyslogMessage().withSDElement(eventIdSDE);
     }
 }
