@@ -19,6 +19,7 @@ package com.teragrep.jla_06.lib.syslog;
 import com.teragrep.rlo_14.SyslogMessage;
 
 import java.time.Instant;
+import java.util.Objects;
 
 public final class SyslogRecordWithTimestamp implements SyslogRecord {
 
@@ -37,5 +38,22 @@ public final class SyslogRecordWithTimestamp implements SyslogRecord {
     @Override
     public SyslogMessage asSyslogMessage() {
         return syslogRecord.asSyslogMessage().withTimestamp(timestamp.toEpochMilli());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(syslogRecord, timestamp);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SyslogRecordWithTimestamp other = (SyslogRecordWithTimestamp) o;
+        return Objects.equals(this.syslogRecord, other.syslogRecord) && Objects.equals(this.timestamp, other.timestamp);
     }
 }

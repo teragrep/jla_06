@@ -18,6 +18,8 @@ package com.teragrep.jla_06.lib.syslog;
 
 import com.teragrep.rlo_14.SyslogMessage;
 
+import java.util.Objects;
+
 public final class SyslogRecordWithPayload implements SyslogRecord {
 
     private final SyslogRecord syslogRecord;
@@ -33,5 +35,22 @@ public final class SyslogRecordWithPayload implements SyslogRecord {
         SyslogMessage syslogMessage = syslogRecord.asSyslogMessage();
         syslogMessage.withMsg(payload);
         return syslogMessage;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(syslogRecord, payload);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SyslogRecordWithPayload other = (SyslogRecordWithPayload) o;
+        return Objects.equals(this.syslogRecord, other.syslogRecord) && Objects.equals(this.payload, other.payload);
     }
 }

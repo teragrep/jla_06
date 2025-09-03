@@ -18,6 +18,8 @@ package com.teragrep.jla_06.lib.syslog;
 
 import com.teragrep.rlo_14.SDElement;
 import com.teragrep.rlo_14.SyslogMessage;
+
+import java.util.Objects;
 import java.util.UUID;
 
 public final class SyslogRecordWithEventID implements SyslogRecord {
@@ -45,5 +47,22 @@ public final class SyslogRecordWithEventID implements SyslogRecord {
         eventIdSDE.addSDParam("unixtime", epochtime);
 
         return syslogRecord.asSyslogMessage().withSDElement(eventIdSDE);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(syslogRecord, hostname);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SyslogRecordWithEventID other = (SyslogRecordWithEventID) o;
+        return Objects.equals(this.syslogRecord, other.syslogRecord) && Objects.equals(this.hostname, other.hostname);
     }
 }

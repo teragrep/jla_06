@@ -19,6 +19,8 @@ package com.teragrep.jla_06.lib.syslog;
 import com.teragrep.rlo_14.SDElement;
 import com.teragrep.rlo_14.SyslogMessage;
 
+import java.util.Objects;
+
 public final class SyslogRecordWithSystemID implements SyslogRecord {
 
     private final SyslogRecord syslogRecord;
@@ -36,5 +38,22 @@ public final class SyslogRecordWithSystemID implements SyslogRecord {
         systemIDSD.addSDParam("systemId", systemID);
 
         return syslogRecord.asSyslogMessage().withSDElement(systemIDSD);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(syslogRecord, systemID);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SyslogRecordWithSystemID other = (SyslogRecordWithSystemID) o;
+        return Objects.equals(this.syslogRecord, other.syslogRecord) && Objects.equals(this.systemID, other.systemID);
     }
 }

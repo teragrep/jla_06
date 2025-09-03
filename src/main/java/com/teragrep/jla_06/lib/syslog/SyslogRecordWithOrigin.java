@@ -19,6 +19,8 @@ package com.teragrep.jla_06.lib.syslog;
 import com.teragrep.rlo_14.SDElement;
 import com.teragrep.rlo_14.SyslogMessage;
 
+import java.util.Objects;
+
 public final class SyslogRecordWithOrigin implements SyslogRecord {
 
     private final SyslogRecord syslogRecord;
@@ -37,4 +39,20 @@ public final class SyslogRecordWithOrigin implements SyslogRecord {
         return syslogRecord.asSyslogMessage().withSDElement(origin);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(syslogRecord, hostname);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SyslogRecordWithOrigin other = (SyslogRecordWithOrigin) o;
+        return Objects.equals(this.syslogRecord, other.syslogRecord) && Objects.equals(this.hostname, other.hostname);
+    }
 }

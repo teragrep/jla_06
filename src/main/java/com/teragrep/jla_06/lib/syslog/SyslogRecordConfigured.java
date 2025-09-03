@@ -20,6 +20,8 @@ import com.teragrep.rlo_14.Facility;
 import com.teragrep.rlo_14.Severity;
 import com.teragrep.rlo_14.SyslogMessage;
 
+import java.util.Objects;
+
 public final class SyslogRecordConfigured implements SyslogRecord {
 
     private final String hostname;
@@ -47,5 +49,23 @@ public final class SyslogRecordConfigured implements SyslogRecord {
         syslogMessage = syslogMessage.withAppName(appName);
 
         return syslogMessage;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(hostname, appName, severity, facility);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SyslogRecordConfigured other = (SyslogRecordConfigured) o;
+        return Objects.equals(this.hostname, other.hostname) && Objects.equals(this.appName, other.appName)
+                && Objects.equals(this.severity, other.severity) && Objects.equals(this.facility, other.facility);
     }
 }
