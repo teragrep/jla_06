@@ -26,41 +26,41 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class EqualityTests {
+public class SyslogRecordTests {
 
     @Test
     @DisplayName(value = "Test SyslogRecordConfigured equalness")
-    public void testSyslogRecordConfigured() {
+    public void testSyslogRecordConfiguredEqualness() {
         EqualsVerifier.forClass(SyslogRecordConfigured.class).verify();
     }
 
     @Test
     @DisplayName(value = "Test SyslogRecordWithEventID equalness")
-    public void testSyslogRecordWithEventID() {
+    public void testSyslogRecordWithEventIDEqualness() {
         EqualsVerifier.forClass(SyslogRecordWithEventID.class).verify();
     }
 
     @Test
     @DisplayName(value = "Test SyslogRecordWithOrigin equalness")
-    public void testSyslogRecordWithOrigin() {
+    public void testSyslogRecordWithOriginEqualness() {
         EqualsVerifier.forClass(SyslogRecordWithOrigin.class).verify();
     }
 
     @Test
     @DisplayName(value = "Test SyslogRecordWithPayload equalness")
-    public void testSyslogRecordWithPayload() {
+    public void testSyslogRecordWithPayloadEqualness() {
         EqualsVerifier.forClass(SyslogRecordWithPayload.class).verify();
     }
 
     @Test
     @DisplayName(value = "Test SyslogRecordWithSystemID equalness")
-    public void testSyslogRecordWithSystemID() {
+    public void testSyslogRecordWithSystemIDEqualness() {
         EqualsVerifier.forClass(SyslogRecordWithSystemID.class).verify();
     }
 
     @Test
     @DisplayName(value = "Test SyslogRecordWithTimestamp equalness")
-    public void testSyslogRecordWithTimestamp() {
+    public void testSyslogRecordWithTimestampEqualness() {
         EqualsVerifier.forClass(SyslogRecordWithTimestamp.class).verify();
     }
 }
