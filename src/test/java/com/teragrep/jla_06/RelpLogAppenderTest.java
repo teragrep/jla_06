@@ -150,11 +150,9 @@ public class RelpLogAppenderTest {
 
             String testIterationValue = matcher.group(1);
 
-            Assertions.assertDoesNotThrow(() -> {
-                Integer.parseInt(testIterationValue);
+            int testIteration = Assertions.assertDoesNotThrow(() -> {
+                return Integer.parseInt(testIterationValue);
             }, "extracted test iteration not integer");
-
-            int testIteration = Integer.parseInt(testIterationValue);
 
             Boolean iterationValue = testIterationsMap.remove(testIteration);
             Assertions.assertNotNull(iterationValue);
